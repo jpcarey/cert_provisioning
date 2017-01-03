@@ -13,6 +13,8 @@ The `authorities` dictionary consists of the following:
 - Each authority can have `servers`
 - Each authority can have `clients`
 
+If you generate a string in `./certs/passwd`, this will be used for the private keys.  If not, a random value will be generated on first run.
+
 ```
 $ ansible-playbook run.yml
 ```
