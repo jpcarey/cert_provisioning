@@ -1,0 +1,22 @@
+---
+# Root CA main loop
+
+- name: CA setup
+  include: _ca.yml
+  with_items:
+    - "{{ ca_authority }}"
+  loop_control:
+    label: "certificate authority: {{ca_authority.CN}}"
+    loop_var: ca_setup
+
+- name: Init signer_name and authority_chain
+  set_fact:
+    signer_name: "{{ root_cn }}"
+    authority_chain: "{{ root_cn }}"
+
+- name: Intermediate setup
+  include: setup_intr.yml
+  with_items:
+    - "{{ ca_authority.children | default([]) }}"
+  loop_control:
+    loop_var: intermediate

@@ -1,0 +1,17 @@
+---
+- name: "{{ authority_path | basename }} |Setup folders"
+  file: path={{ authority_path }}/{{ item }} state=directory
+  with_items:
+    - certs
+    - crl
+    - csr
+    - newcerts
+    - private
+
+- name: "{{ authority_path | basename }} |Init index.txt"
+  file: path={{ authority_path }}/index.txt state=touch
+  # only care if this fails
+  changed_when: False
+
+- name: "{{ authority_path | basename }} |Init starting serial number"
+  copy: content="1000" dest="{{ authority_path }}/serial"

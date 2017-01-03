@@ -1,0 +1,8 @@
+### Ansible ###
+*.retry
+
+### macOS ###
+.DS_Store
+
+### Certs ###
+certs/

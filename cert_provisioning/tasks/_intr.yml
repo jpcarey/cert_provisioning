@@ -1,0 +1,70 @@
+---
+# intermediate setup steps
+- name: "{{ authority_cn }} |Update signing authority and chain"
+  set_fact:
+    signer_name: "{{ authority_chain | basename }}"
+    signer_conf: "{{ playbook_dir }}/certs/{{ authority_chain }}/openssl-{{ authority_chain | basename }}.cnf"
+    signer_path: "{{ playbook_dir }}/certs/{{ authority_chain }}"
+    authority_chain: "{{ authority_chain }}/{{ intermediate.CN }}"
+
+- name: "{{ authority_cn }} |Set current authority info"
+  set_fact:
+    authority_conf: "{{ playbook_dir }}/certs/{{ authority_chain }}/openssl-{{ authority_chain | basename }}.cnf"
+    authority_path: "{{ playbook_dir }}/certs/{{ authority_chain }}"
+    authority_cn: "{{ intermediate.CN }}"
+    authority_slash: "{{ intermediate.CN | regex_replace(';', '/') }}"
+
+- name: "{{ authority_cn }} |Include folder setup"
+  include: setup_files.yml
+
+- name: "{{ authority_cn }} |Init starting CRL number"
+  copy: content="1000" dest="{{ authority_path }}/crlnumber"
+
+- name: "{{ authority_cn }} |Generate OpenSSL config file"
+  template: src=templates/openssl-intr.cnf.j2 dest={{ authority_conf }}
+
+- name: "{{ authority_cn }} |Generate private key"
+  command: 'openssl genrsa -aes256 -passout pass:{{ authority_password }} \
+    -out "{{ authority_path }}/private/{{ authority_cn }}.key.pem" 4096'
+  args:
+    creates: '{{ authority_path }}/private/{{ authority_cn }}.key.pem'
+
+- name: "{{ authority_cn }} |Generate cert signing request (csr)"
+  command: 'openssl req -config "{{ authority_conf }}" -new -passin pass:{{ authority_password }} \
+    -subj "/{{ authority_slash }}" -sha256 -key "{{ authority_path }}/private/{{ authority_cn }}.key.pem" \
+    -out "{{ authority_path }}/csr/{{ authority_cn }}.csr.pem" '
+  args:
+    creates: '{{ authority_path }}/csr/{{ authority_cn }}.csr.pem'
+
+- name: "{{ authority_cn }} |Sign csr by authority: {{ signer_name }}"
+  command: 'openssl ca -batch -config "{{ signer_conf }}" -extensions v3_intermediate_ca \
+    -passin pass:{{ authority_password }} -days 3650 -notext -md sha256 \
+    -in "{{ authority_path }}/csr/{{ authority_cn }}.csr.pem" \
+    -out "{{ authority_path }}/certs/{{ authority_cn }}.cert.pem" '
+  args:
+    creates: '{{ authority_path }}/certs/{{ authority_cn }}.cert.pem'
+
+#####
+# TODO: should find a better way to determine if it is a root CA
+#####
+- stat: path={{ signer_path }}/certs/{{ signer_path | basename }}-chain.cert.pem
+  register: chain
+- set_fact:
+    chain_file: "{{ signer_path + '/certs/' + signer_path|basename + '.cert.pem' if not chain.stat.exists else chain.stat.path }}"
+
+- name: "{{ authority_cn }} |Create cert chain file"
+  shell: 'cat "{{ authority_path }}/certs/{{ authority_cn }}.cert.pem" \
+      "{{ chain_file }}" > "{{ authority_path }}/certs/{{ authority_cn }}-chain.cert.pem" '
+  args:
+    creates: '{{ authority_path }}/certs/{{ authority_cn }}-chain.cert.pem'
+
+# # Intermediate truststore
+# - name: Java Keytool | Truststore Intermediate
+#   command: 'keytool -importcert -noprompt -alias my_intr \
+#     -keystore truststore.jks  -storepass password -keypass password \
+#     -file {{ playbook_dir }}/certs/ca/intermediate/certs/intermediate.cert.pem'
+#   args:
+#     chdir: '{{ playbook_dir }}/certs/keytool'
+#   register: trust_intr
+#   changed_when: trust_intr.rc == 0
+#   ignore_errors: true

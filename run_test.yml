@@ -1,0 +1,34 @@
+---
+- hosts: localhost
+  remote_user: root
+  roles:
+    - cert_provisioning
+  # cn: Common name
+  # san: Subject Alternative Names
+  vars:
+    authorities:
+      - CN: CN=ca_A
+        children:
+          - CN: CN=intr_A1_1
+            servers:
+              - CN: CN=first.node
+                san: dns=first.node
+            children:
+              - CN: CN=intr_A1_2
+                children:
+                  - CN: CN=intr_A1_3
+          - CN: CN=intr_A2
+            servers:
+              - CN: CN=node1.local
+                san: ip=127.0.0.1
+              - CN: CN=kibana.local
+                san: ip=127.0.0.1
+            clients:
+              - CN: CN=logstash@logstash.local
+                san: dns=logstash.local
+      - CN: CN=ca_B
+        children:
+          - CN: CN=intr_B1
+            children:
+              - CN: CN=intr_B1_1
+          - CN: CN=intr_B2

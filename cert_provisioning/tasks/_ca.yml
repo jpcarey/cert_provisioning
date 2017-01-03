@@ -1,0 +1,26 @@
+---
+# Root CA setup steps
+- set_fact:
+    root_cn: "{{ ca_setup.CN }}"
+    root_slash: "{{ ca_setup.CN | regex_replace(';', '/') }}"
+    root_path: "{{ playbook_dir }}/certs/{{ ca_setup.CN }}"
+
+- name: file_setup new ca
+  include: setup_files.yml
+  vars:
+    authority_path: "{{ root_path }}"
+
+- name: "{{ root_cn }} |Generate OpenSSL config file"
+  template: src=templates/openssl-ca.cnf.j2 dest={{ root_path }}/openssl-{{ root_cn }}.cnf
+
+- name: "{{ root_cn }} |Generate private key"
+  command: 'openssl genrsa -aes256 -passout pass:{{ authority_password }} -out "{{ root_path }}/private/{{ root_cn }}.key.pem" 4096'
+  args:
+    creates: '{{ root_path }}/private/{{ root_cn }}.key.pem'
+
+- name: "{{ root_cn }} |Generate and sign root cert"
+  command: 'openssl req -config "{{ root_path }}/openssl-{{ root_cn }}.cnf" -new -passin pass:{{ authority_password }} \
+    -subj "/{{ root_slash }}" -x509 -days 7300 -sha256 -extensions v3_ca -key "{{ root_path }}/private/{{ root_cn }}.key.pem" \
+    -out "{{ root_path }}/certs/{{ root_cn }}.cert.pem"'
+  args:
+    creates: '{{ root_path }}/certs/{{ root_cn }}.cert.pem'

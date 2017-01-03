@@ -1,0 +1,37 @@
+---
+# Intermediate main loop
+- name: Intermediate setup steps
+  include: _intr.yml
+
+#############################################
+- name: setup Servers Certs
+  include: _server_certs.yml
+  with_items:
+    - "{{ intermediate.servers | default([]) }}"
+  loop_control:
+    loop_var: server
+    label: "server={{server.CN}}"
+
+- name: setup Client Certs
+  shell: "echo {{ item.CN }}"
+  with_items:
+    - "{{ intermediate.clients | default([]) }}"
+  loop_control:
+    label: "client={{item.CN}}"
+
+#############################################
+# TODO:
+# [WARNING]: The loop variable 'intermediate' is already in use. You should set the `loop_var` value in the
+# `loop_control` option for the task to something else to avoid variable collisions and unexpected behavior.
+- name: reset for looping
+  set_fact:
+    signer_name: "{{ root_cn }}"
+    authority_chain: "{{ root_cn }}"
+  when: intermediate.children is not defined
+
+- name: keep going
+  include: setup_intr.yml
+  with_items:
+    - "{{ intermediate.children | default([]) }}"
+  loop_control:
+    loop_var: "intermediate"

@@ -1,0 +1,17 @@
+---
+# Main task
+- name: "generate random password if necessary"
+  copy: content="{{ ansible_date_time.iso8601_micro | to_uuid }}" dest="{{ playbook_dir }}/certs/passwd" force=no
+
+- name: "read password file"
+  set_fact:
+    authority_password: "{{ lookup('file', '{{ playbook_dir }}/certs/passwd') }}"
+
+- debug: var=contents
+
+- name: setup CAs
+  include: setup_ca.yml
+  with_items:
+    - "{{ authorities }}"
+  loop_control:
+    loop_var: ca_authority

@@ -1,0 +1,22 @@
+---
+# Server cert setup steps
+- name: "{{ server.CN }} |Generate private key"
+  command: 'openssl genrsa -aes256 -passout pass:{{ authority_password }} \
+    -out "{{ authority_path }}/private/{{ server.CN }}.key.pem" 2048'
+  args:
+    creates: '{{ authority_path }}/private/{{ server.CN }}.key.pem'
+
+- name: "{{ server.CN }} |Generate cert signing request (csr)"
+  command: 'openssl req -config "{{ authority_conf }}" -new -passin pass:{{ authority_password }} \
+    -subj "/{{ server.CN }}" -sha256 -key "{{ authority_path }}/private/{{ server.CN }}.key.pem" \
+    -out "{{ authority_path }}/csr/{{ server.CN }}.csr.pem" '
+  args:
+    creates: '{{ authority_path }}/csr/{{ server.CN }}.csr.pem'
+
+- name: "{{ server.CN }} |Sign csr by authority: {{ authority_cn }}"
+  command: 'openssl ca -batch -config "{{ authority_conf }}" -extensions v3_req \
+    -passin pass:{{ authority_password }} -days 3650 -notext -md sha256 \
+    -in "{{ authority_path }}/csr/{{ server.CN }}.csr.pem" \
+    -out "{{ authority_path }}/certs/{{ server.CN }}.cert.pem" '
+  args:
+    creates: '{{ authority_path }}/certs/{{ server.CN }}.cert.pem'

@@ -1,0 +1,33 @@
+---
+- hosts: localhost
+  remote_user: root
+  roles:
+    - cert_provisioning
+  # cn: Common name
+  # san: Subject Alternative Names
+  vars:
+    authorities:
+      - CN: "C=US;O=Carey Ltd;CN=Carey Ltd CA"
+        children:
+          - CN: "C=US;O=Carey Ltd;CN=Carey Intermediate 1"
+            servers:
+              - CN: CN=node1.local
+                san: dns=first.node
+            children:
+              - CN: "C=US;O=Carey Ltd;CN=Carey G2"
+                servers:
+                  - CN: CN=node2.local
+                    san: ip=127.0.0.1
+                  - CN: CN=kibana.local
+                    san: ip=127.0.0.1
+                clients:
+                  - CN: CN=logstash@logstash.local
+                    san: dns=logstash.local
+          - CN: "C=US;O=Carey Ltd;CN=Carey Intermediate 2"
+      - CN: "C=US;O=Elastic Support Ltd;CN=Elastic Support Ltd CA"
+        children:
+          - CN: "C=US;O=Elastic Support Ltd;CN=Elastic Support Intermediate 1"
+            children:
+              - CN: "C=US;O=Elastic Support Ltd;CN=Elastic Support G2"
+          - CN: "C=US;O=Elastic Support Ltd;CN=Elastic Support Intermediate 2"
+      - CN: "C=US;O=Example Ltd;CN=Example Ltd CA"
