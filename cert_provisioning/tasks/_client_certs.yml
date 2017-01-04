@@ -4,9 +4,15 @@
   set_fact:
     profile: "{{ 'usr_cert' if client.san|default('') == '' else 'usr_cert_san' }}"
 
+# encrypted private key
+# - name: "{{ client.CN }} |Generate private key"
+#   command: 'openssl genrsa -aes256 -passout pass:{{ authority_password }} \
+#     -out "{{ authority_path }}/private/{{ client.CN }}.key.pem" 2048'
+#   args:
+#     creates: '{{ authority_path }}/private/{{ client.CN }}.key.pem'
+
 - name: "{{ client.CN }} |Generate private key"
-  command: 'openssl genrsa -aes256 -passout pass:{{ authority_password }} \
-    -out "{{ authority_path }}/private/{{ client.CN }}.key.pem" 2048'
+  command: 'openssl genrsa -out "{{ authority_path }}/private/{{ client.CN }}.key.pem" 2048'
   args:
     creates: '{{ authority_path }}/private/{{ client.CN }}.key.pem'
 

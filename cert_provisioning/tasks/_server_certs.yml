@@ -4,9 +4,15 @@
   set_fact:
     profile: "{{ 'v3_req' if server.san|default('') == '' else 'v3_req_san' }}"
 
+# encrypted private key
+# - name: "{{ server.CN }} |Generate private key"
+#   command: 'openssl genrsa -aes256 -passout pass:{{ authority_password }} \
+#     -out "{{ authority_path }}/private/{{ server.CN }}.key.pem" 2048'
+#   args:
+#     creates: '{{ authority_path }}/private/{{ server.CN }}.key.pem'
+
 - name: "{{ server.CN }} |Generate private key"
-  command: 'openssl genrsa -aes256 -passout pass:{{ authority_password }} \
-    -out "{{ authority_path }}/private/{{ server.CN }}.key.pem" 2048'
+  command: 'openssl genrsa -out "{{ authority_path }}/private/{{ server.CN }}.key.pem" 2048'
   args:
     creates: '{{ authority_path }}/private/{{ server.CN }}.key.pem'
 
