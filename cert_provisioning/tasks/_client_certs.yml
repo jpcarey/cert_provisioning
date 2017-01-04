@@ -1,0 +1,31 @@
+---
+# client cert setup steps
+- name: "{{ client.CN }} |Setup vars"
+  set_fact:
+    profile: "{{ 'usr_cert' if client.san|default('') == '' else 'usr_cert_san' }}"
+
+- name: "{{ client.CN }} |Generate private key"
+  command: 'openssl genrsa -aes256 -passout pass:{{ authority_password }} \
+    -out "{{ authority_path }}/private/{{ client.CN }}.key.pem" 2048'
+  args:
+    creates: '{{ authority_path }}/private/{{ client.CN }}.key.pem'
+
+- name: "{{ client.CN }} |Generate cert signing request (csr)"
+  command: 'openssl req -config "{{ authority_conf }}" -extensions {{ profile }} \
+    -new -passin pass:{{ authority_password }} \
+    -subj "/{{ client.CN }}" -sha256 -key "{{ authority_path }}/private/{{ client.CN }}.key.pem" \
+    -out "{{ authority_path }}/csr/{{ client.CN }}.csr.pem" '
+  args:
+    creates: '{{ authority_path }}/csr/{{ client.CN }}.csr.pem'
+  environment:
+    SAN: "{{ client.san | default('') }}"
+
+- name: "{{ client.CN }} |Sign csr by authority: {{ authority_cn }}"
+  command: 'openssl ca -batch -config "{{ authority_conf }}" -extensions {{ profile }} \
+    -passin pass:{{ authority_password }} -days 3650 -notext -md sha256 \
+    -in "{{ authority_path }}/csr/{{ client.CN }}.csr.pem" \
+    -out "{{ authority_path }}/certs/{{ client.CN }}.cert.pem" '
+  args:
+    creates: '{{ authority_path }}/certs/{{ client.CN }}.cert.pem'
+  environment:
+    SAN: "{{ client.san | default('') }}"

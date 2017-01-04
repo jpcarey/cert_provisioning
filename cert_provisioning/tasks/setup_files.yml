@@ -14,4 +14,4 @@
   changed_when: False
 
 - name: "{{ authority_path | basename }} |Init starting serial number"
-  copy: content="1000" dest="{{ authority_path }}/serial"
+  copy: content="1000" dest="{{ authority_path }}/serial" force=no

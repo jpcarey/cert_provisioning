@@ -7,7 +7,7 @@
   set_fact:
     authority_password: "{{ lookup('file', '{{ playbook_dir }}/certs/passwd') }}"
 
-- debug: var=contents
+- debug: var=authority_password
 
 - name: setup CAs
   include: setup_ca.yml

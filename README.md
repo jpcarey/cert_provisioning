@@ -21,7 +21,7 @@ $ ansible-playbook run.yml
 
 
 ##### TODO:
-- Need to add client cert setup
-- SAN for server and client setup
+- Test client & server certs
+- Add server & client cert support for root authority
 - Generate multiple formats (currently just PEM): pks12, keystore / truststore, DER
-- Cleanup & Testing
+- Cleanup & Tests integration

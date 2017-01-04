@@ -12,17 +12,18 @@
           - CN: "C=US;O=Carey Ltd;CN=Carey Intermediate 1"
             servers:
               - CN: CN=node1.local
-                san: dns=first.node
+                san: "DNS:first.node, IP:127.0.0.1"
             children:
               - CN: "C=US;O=Carey Ltd;CN=Carey G2"
                 servers:
                   - CN: CN=node2.local
-                    san: ip=127.0.0.1
+                    san: "IP:127.0.0.1"
                   - CN: CN=kibana.local
-                    san: ip=127.0.0.1
+                    san: ""
+                  - CN: CN=kibana2.local
                 clients:
                   - CN: CN=logstash@logstash.local
-                    san: dns=logstash.local
+                    san: "DNS:logstash.local"
           - CN: "C=US;O=Carey Ltd;CN=Carey Intermediate 2"
       - CN: "C=US;O=Elastic Support Ltd;CN=Elastic Support Ltd CA"
         children:

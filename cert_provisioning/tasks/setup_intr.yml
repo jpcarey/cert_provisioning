@@ -13,11 +13,12 @@
     label: "server={{server.CN}}"
 
 - name: setup Client Certs
-  shell: "echo {{ item.CN }}"
+  include: _client_certs.yml
   with_items:
     - "{{ intermediate.clients | default([]) }}"
   loop_control:
-    label: "client={{item.CN}}"
+    loop_var: client
+    label: "client={{client.CN}}"
 
 #############################################
 # TODO:
