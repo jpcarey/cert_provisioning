@@ -1,6 +1,5 @@
 ---
 - hosts: localhost
-  remote_user: root
   roles:
     - cert_provisioning
 
@@ -14,7 +13,7 @@
         children:
           - DN: "CN=Carey Intermediate 1;O=Carey Ltd;C=US"
             servers:
-              - DN: CN=node1.local
+              - DN: "CN=node1.local;O=Carey Ltd;C=US"
                 san: "DNS:first.node, IP:127.0.0.1"
             children:
               - DN: "CN=Carey G2;O=Carey Ltd;C=US"

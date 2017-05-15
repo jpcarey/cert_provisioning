@@ -9,8 +9,7 @@
     intr_cn_filename: "{{ intr_cn | regex_replace(' ', '_') }}"
     # Carey_Ltd_CA
 
-- debug: var=root_pass
-- name: "{{ authority_cn }} |Update signing authority and chain"
+- name: "{{ intr_cn }} |Update signing authority and chain"
   set_fact:
     signer_name: "{{ authority_chain | basename }}"
     signer_conf: "{{ playbook_dir }}/.openssl/{{ authority_chain }}/openssl-{{ authority_chain | basename }}.cnf"
@@ -23,7 +22,7 @@
 # - debug: var=signer_path
 # - debug: var=authority_chain
 
-- name: "{{ authority_cn }} |Set current authority info"
+- name: "{{ intr_cn }} |Set current authority info"
   set_fact:
     authority_conf: "{{ playbook_dir }}/.openssl/{{ authority_chain }}/openssl-{{ authority_chain | basename }}.cnf"
     authority_path: "{{ playbook_dir }}/.openssl/{{ authority_chain }}"

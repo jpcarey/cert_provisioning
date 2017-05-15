@@ -4,6 +4,7 @@
   set_fact:
     profile: "{{ 'v3_req' if server.san|default('') == '' else 'v3_req_san' }}"
     server_cn: "{{ server.DN | regex_replace('^CN=(.*?)(;.*)?$', '\\1') }}"
+    server_slash: "{{ server.DN.split(';') | reverse | join('/') }}"
 
 - name: "{{ server_cn }} |Setup filename var"
   set_fact:
@@ -38,7 +39,7 @@
   command: >
     openssl req -config "{{ authority_conf }}" -extensions {{ profile }}
     -new -passin pass:{{ authority_pass }}
-    -subj "/{{ server.DN }}" -sha256 -key "{{ authority_path }}/private/{{ server_cn_filename }}.key"
+    -subj "/{{ server_slash }}" -sha256 -key "{{ authority_path }}/private/{{ server_cn_filename }}.key"
     -out "{{ authority_path }}/csr/{{ server_cn_filename }}.csr.pem"
   args:
     creates: '{{ authority_path }}/csr/{{ server_cn_filename }}.csr.pem'

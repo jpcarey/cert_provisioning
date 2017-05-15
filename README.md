@@ -21,8 +21,6 @@ $ ansible-playbook run.yml
 
 
 ##### TODO:
-- Test / fix DN for server and client certs
-- Create passwd per authority. Document behavior.
 - Server certs do not have X509v3 Authority Key Identifier
 - Add truststore generation
 - Add server & client cert support for root authority (? maybe)
