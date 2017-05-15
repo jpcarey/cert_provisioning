@@ -1,9 +1,18 @@
 ---
 # Root CA setup steps
 - set_fact:
-    root_cn: "{{ ca_setup.CN }}"
-    root_slash: "{{ ca_setup.CN | regex_replace(';', '/') }}"
-    root_path: "{{ playbook_dir }}/certs/{{ ca_setup.CN }}"
+    root_slash: "{{ ca_setup.DN.split(';') | reverse | join('/') }}" # C=US/O=Carey Ltd/CN=Carey Ltd CA
+    root_cn: "{{ ca_setup.DN | regex_replace('^CN=(.*?)(;.*)?$', '\\1') }}" # Carey Ltd CA
+- set_fact:
+    root_cn_filename: "{{ root_cn | regex_replace(' ', '_') }}" # Carey_Ltd_CA
+- set_fact:
+    root_path: "{{ playbook_dir }}/.openssl/{{ root_cn_filename }}" # ../certs/Carey_Ltd_CA
+    root_pass: "{{ lookup('password', '{{ playbook_dir }}/.openssl/{{ root_cn_filename }}/private/password.txt') }}"
+
+# - set_fact:
+#     root_cn: "{{ ca_setup.DN }}"
+#     root_slash: "{{ ca_setup.DN | regex_replace(';', '/') }}"
+#     root_path: "{{ playbook_dir }}/certs/{{ ca_setup.DN }}"
 
 - name: file_setup new ca
   include: setup_files.yml
@@ -11,16 +20,30 @@
     authority_path: "{{ root_path }}"
 
 - name: "{{ root_cn }} |Generate OpenSSL config file"
-  template: src=templates/openssl-ca.cnf.j2 dest={{ root_path }}/openssl-{{ root_cn }}.cnf
+  template: src=templates/openssl-ca.cnf.j2 dest={{ root_path }}/openssl-{{ root_cn_filename }}.cnf
 
 - name: "{{ root_cn }} |Generate private key"
-  command: 'openssl genrsa -aes256 -passout pass:{{ authority_password }} -out "{{ root_path }}/private/{{ root_cn }}.key.pem" 4096'
+  command: >
+    openssl genrsa -aes256 -passout pass:{{ root_pass }}
+    -out "{{ root_path }}/private/{{ root_cn_filename }}.key" 4096
   args:
-    creates: '{{ root_path }}/private/{{ root_cn }}.key.pem'
+    creates: '{{ root_path }}/private/{{ root_cn_filename }}.key'
 
 - name: "{{ root_cn }} |Generate and sign root cert"
-  command: 'openssl req -config "{{ root_path }}/openssl-{{ root_cn }}.cnf" -new -passin pass:{{ authority_password }} \
-    -subj "/{{ root_slash }}" -x509 -days 7300 -sha256 -extensions v3_ca -key "{{ root_path }}/private/{{ root_cn }}.key.pem" \
-    -out "{{ root_path }}/certs/{{ root_cn }}.cert.pem"'
+  command: >
+    openssl req -config "{{ root_path }}/openssl-{{ root_cn_filename }}.cnf"
+    -new -passin pass:{{ root_pass }}
+    -subj "/{{ root_slash }}" -x509 -days 7300 -sha256 -extensions v3_ca
+    -key "{{ root_path }}/private/{{ root_cn_filename }}.key"
+    -out "{{ root_path }}/certs/{{ root_cn_filename }}.crt"
   args:
-    creates: '{{ root_path }}/certs/{{ root_cn }}.cert.pem'
+    creates: '{{ root_path }}/certs/{{ root_cn_filename }}.crt'
+
+- name: "{{ root_cn }} |Setup output folder"
+  file: path={{ playbook_dir }}/certs/{{ root_cn_filename }} state=directory
+
+- name: "{{ root_cn }} |Copy to output folder"
+  copy:
+    src: '{{ root_path }}/certs/{{ root_cn_filename }}.crt'
+    dest: '{{ playbook_dir }}/certs/{{ root_cn_filename }}/{{ root_cn_filename }}.crt'
+    remote_src: true

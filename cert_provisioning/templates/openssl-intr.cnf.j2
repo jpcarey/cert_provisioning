@@ -16,8 +16,8 @@ serial            = $dir/serial
 RANDFILE          = $dir/private/.rand
 
 # The root key and root certificate.
-private_key       = $dir/private/{{ authority_cn }}.key.pem
-certificate       = $dir/certs/{{ authority_cn }}.cert.pem
+private_key       = $dir/private/{{ authority_cn_filename }}.key
+certificate       = $dir/certs/{{ authority_cn_filename }}.crt
 
 # For certificate revocation lists.
 crlnumber         = $dir/crlnumber
@@ -108,10 +108,12 @@ keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 
 [ v3_req ]
 subjectKeyIdentifier = hash
+# authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = CA:FALSE
 
 [ v3_req_san ]
 subjectKeyIdentifier = hash
+# authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = CA:FALSE
 subjectAltName=${ENV::SAN}
 

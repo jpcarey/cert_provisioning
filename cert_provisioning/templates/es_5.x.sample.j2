@@ -1,0 +1,25 @@
+
+xpack.security.http.ssl.enabled: true
+
+xpack.ssl.client_authentication: optional # default
+# required | optional | none
+xpack.ssl.verification_mode: full # default
+# none | certificate | full
+
+xpack.security.transport.ssl.enabled: true
+
+xpack.ssl.key: path/to/es.path.conf/shield/{{ server_cn_filename }}.jks
+# xpack.ssl.key_passphrase:
+# xpack.ssl.keystore.path:
+# xpack.ssl.keystore.password:
+# xpack.ssl.keystore.key_password: # default = xpack.ssl.keystore.password
+xpack.ssl.certificate:
+xpack.ssl.certificate_authorities: []
+
+# xpack.ssl.truststore.path: path/to/es.path.conf/shield/{{ truststore }}.jks
+# xpack.ssl.truststore.password:
+
+# xpack.security.transport.filter.allow:
+# xpack.security.transport.filter.deny:
+# xpack.security.http.filter.allow:
+# xpack.security.http.filter.deny:

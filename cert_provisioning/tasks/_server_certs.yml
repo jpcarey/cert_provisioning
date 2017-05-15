@@ -1,37 +1,104 @@
 ---
 # Server cert setup steps
-- name: "{{ server.CN }} |Setup vars"
+- name: "{{ server.DN }} |Setup vars"
   set_fact:
     profile: "{{ 'v3_req' if server.san|default('') == '' else 'v3_req_san' }}"
+    server_cn: "{{ server.DN | regex_replace('^CN=(.*?)(;.*)?$', '\\1') }}"
+
+- name: "{{ server_cn }} |Setup filename var"
+  set_fact:
+    server_cn_filename: "{{ server_cn | regex_replace(' ', '_') }}"
+
+- set_fact:
+    server_pass: "{{ lookup('password', '{{ playbook_dir }}/certs/{{ authority_chain }}/{{ server_cn_filename }}/password.txt') }}"
 
 # encrypted private key
-# - name: "{{ server.CN }} |Generate private key"
-#   command: 'openssl genrsa -aes256 -passout pass:{{ authority_password }} \
-#     -out "{{ authority_path }}/private/{{ server.CN }}.key.pem" 2048'
+# - name: "{{ server.DN }} |Generate private key"
+#   command: 'openssl genrsa -aes256 -passout pass:{{ signer_pass }} \
+#     -out "{{ authority_path }}/private/{{ server.DN }}.key" 2048'
 #   args:
-#     creates: '{{ authority_path }}/private/{{ server.CN }}.key.pem'
+#     creates: '{{ authority_path }}/private/{{ server.DN }}.key'
 
-- name: "{{ server.CN }} |Generate private key"
-  command: 'openssl genrsa -out "{{ authority_path }}/private/{{ server.CN }}.key.pem" 2048'
+- name: "{{ server_cn }} |Generate private key"
+  command: 'openssl genrsa -out "{{ authority_path }}/private/{{ server_cn_filename }}.key" 2048'
   args:
-    creates: '{{ authority_path }}/private/{{ server.CN }}.key.pem'
+    creates: '{{ authority_path }}/private/{{ server_cn_filename }}.key'
 
-- name: "{{ server.CN }} |Generate cert signing request (csr)"
-  command: 'openssl req -config "{{ authority_conf }}" -extensions {{ profile }} \
-    -new -passin pass:{{ authority_password }} \
-    -subj "/{{ server.CN }}" -sha256 -key "{{ authority_path }}/private/{{ server.CN }}.key.pem" \
-    -out "{{ authority_path }}/csr/{{ server.CN }}.csr.pem" '
+# openssl pkcs8 -in /Users/jared/tmp/certificate-bundle/logstash-systems/logstash-systems.key
+#   -topk8 -nocrypt -out /Users/jared/tmp/certificate-bundle/logstash-systems/logstash-systems.pkcs8.key
+
+- name: "{{ server_cn }} |PKCS8 private key"
+  command: >
+    openssl pkcs8 -in "{{ authority_path }}/private/{{ server_cn_filename }}.key"
+    -topk8 -nocrypt -out "{{ authority_path }}/private/{{ server_cn_filename }}.pkcs8.key"
   args:
-    creates: '{{ authority_path }}/csr/{{ server.CN }}.csr.pem'
+    creates: '{{ authority_path }}/private/{{ server_cn_filename }}.pkcs8.key'
+
+- name: "{{ server_cn }} |Generate cert signing request (csr)"
+  command: >
+    openssl req -config "{{ authority_conf }}" -extensions {{ profile }}
+    -new -passin pass:{{ authority_pass }}
+    -subj "/{{ server.DN }}" -sha256 -key "{{ authority_path }}/private/{{ server_cn_filename }}.key"
+    -out "{{ authority_path }}/csr/{{ server_cn_filename }}.csr.pem"
+  args:
+    creates: '{{ authority_path }}/csr/{{ server_cn_filename }}.csr.pem'
   environment:
     SAN: "{{ server.san | default('') }}"
 
-- name: "{{ server.CN }} |Sign csr by authority: {{ authority_cn }}"
-  command: 'openssl ca -batch -config "{{ authority_conf }}" -extensions {{ profile }} \
-    -passin pass:{{ authority_password }} -days 3650 -notext -md sha256 \
-    -in "{{ authority_path }}/csr/{{ server.CN }}.csr.pem" \
-    -out "{{ authority_path }}/certs/{{ server.CN }}.cert.pem" '
+- name: "{{ server_cn }} |Sign csr by authority: {{ authority_cn }}"
+  command: >
+    openssl ca -batch -config "{{ authority_conf }}" -extensions {{ profile }}
+    -passin pass:{{ authority_pass }} -days 3650 -notext -md sha256
+    -in "{{ authority_path }}/csr/{{ server_cn_filename }}.csr.pem"
+    -out "{{ authority_path }}/certs/{{ server_cn_filename }}.crt"
   args:
-    creates: '{{ authority_path }}/certs/{{ server.CN }}.cert.pem'
+    creates: '{{ authority_path }}/certs/{{ server_cn_filename }}.crt'
   environment:
     SAN: "{{ server.san | default('') }}"
+
+- name: "{{ server_cn }} |Create PKCS12 keystore"
+  command: >
+    openssl pkcs12 -export -chain -in "{{ authority_path }}/certs/{{ server_cn_filename }}.crt"
+    -inkey "{{ authority_path }}/private/{{ server_cn_filename }}.key"
+    -out "{{ authority_path }}/certs/{{ server_cn_filename }}.p12" -name {{ server_cn_filename }}
+    -passout pass:{{ server_pass }} -CAfile "{{ authority_path }}/certs/{{ authority_cn_filename }}-chain.crt"
+  args:
+    creates: '{{ authority_path }}/certs/{{ server_cn_filename }}.p12'
+
+- name: "{{ server_cn }} |Create Java keystore"
+  command: >
+    keytool -importkeystore -destkeystore "{{ authority_path }}/certs/{{ server_cn_filename }}.jks"
+    -srckeystore "{{ authority_path }}/certs/{{ server_cn_filename }}.p12" -srcstoretype pkcs12
+    -alias {{ server_cn_filename }} -srcstorepass {{ server_pass }} -deststorepass {{ server_pass }} -noprompt
+  args:
+    creates: '{{ authority_path }}/certs/{{ server_cn_filename }}.jks'
+
+- name: "{{ server_cn }} |Setup output folder"
+  file: path={{ playbook_dir }}/certs/{{ authority_chain }}/{{ server_cn_filename }} state=directory
+
+- name: "{{ server_cn }} |Copy to output folder"
+  copy:
+    src: '{{ item.s }}'
+    dest: '{{ item.d }}'
+    remote_src: true
+  with_items:
+    - {
+        s: '{{ authority_path }}/private/{{ server_cn_filename }}.key',
+        d: '{{ playbook_dir }}/certs/{{ authority_chain }}/{{ server_cn_filename }}/{{ server_cn_filename }}.key'
+      }
+    - {
+        s: '{{ authority_path }}/private/{{ server_cn_filename }}.pkcs8.key',
+        d: '{{ playbook_dir }}/certs/{{ authority_chain }}/{{ server_cn_filename }}/{{ server_cn_filename }}.pkcs8.key'
+      }
+    - {
+        s: '{{ authority_path }}/certs/{{ server_cn_filename }}.crt',
+        d: '{{ playbook_dir }}/certs/{{ authority_chain }}/{{ server_cn_filename }}/{{ server_cn_filename }}.crt'
+      }
+    - {
+        s: '{{ authority_path }}/certs/{{ server_cn_filename }}.p12',
+        d: '{{ playbook_dir }}/certs/{{ authority_chain }}/{{ server_cn_filename }}/{{ server_cn_filename }}.p12'
+      }
+    - {
+        s: '{{ authority_path }}/certs/{{ server_cn_filename }}.jks',
+        d: '{{ playbook_dir }}/certs/{{ authority_chain }}/{{ server_cn_filename }}/{{ server_cn_filename }}.jks'
+      }

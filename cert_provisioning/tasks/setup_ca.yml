@@ -6,13 +6,13 @@
   with_items:
     - "{{ ca_authority }}"
   loop_control:
-    label: "certificate authority: {{ca_authority.CN}}"
+    label: "certificate authority: {{ ca_authority.DN }}"
     loop_var: ca_setup
 
 - name: Init signer_name and authority_chain
   set_fact:
-    signer_name: "{{ root_cn }}"
-    authority_chain: "{{ root_cn }}"
+    signer_name: "{{ root_cn_filename }}"
+    authority_chain: "{{ root_cn_filename }}"
 
 - name: Intermediate setup
   include: setup_intr.yml

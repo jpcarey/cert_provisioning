@@ -3,32 +3,37 @@
   remote_user: root
   roles:
     - cert_provisioning
-  # cn: Common name
+
+  # cn: Common Name
+  # dn: Distinguished Name
   # san: Subject Alternative Names
   vars:
     authorities:
-      - CN: "C=US;O=Carey Ltd;CN=Carey Ltd CA"
+      - DN: "CN=Carey Ltd CA;O=Carey Ltd;C=US"
+        truststore: true
         children:
-          - CN: "C=US;O=Carey Ltd;CN=Carey Intermediate 1"
+          - DN: "CN=Carey Intermediate 1;O=Carey Ltd;C=US"
             servers:
-              - CN: CN=node1.local
+              - DN: CN=node1.local
                 san: "DNS:first.node, IP:127.0.0.1"
             children:
-              - CN: "C=US;O=Carey Ltd;CN=Carey G2"
+              - DN: "CN=Carey G2;O=Carey Ltd;C=US"
                 servers:
-                  - CN: CN=node2.local
+                  - DN: CN=node2.local
                     san: "IP:127.0.0.1"
-                  - CN: CN=kibana.local
+                  - DN: CN=kibana.local
                     san: ""
-                  - CN: CN=kibana2.local
+                  - DN: CN=kibana2.local
                 clients:
-                  - CN: CN=logstash@logstash.local
+                  - DN: CN=logstash@logstash.local
                     san: "DNS:logstash.local"
-          - CN: "C=US;O=Carey Ltd;CN=Carey Intermediate 2"
-      - CN: "C=US;O=Elastic Support Ltd;CN=Elastic Support Ltd CA"
+          - DN: "CN=Carey Intermediate 2;O=Carey Ltd;C=US"
+      - DN: "CN=Elastic Support Ltd CA;O=Elastic Support Ltd;C=US"
+        truststore: true
         children:
-          - CN: "C=US;O=Elastic Support Ltd;CN=Elastic Support Intermediate 1"
+          - DN: "CN=Elastic Support Intermediate 1;O=Elastic Support Ltd;C=US"
             children:
-              - CN: "C=US;O=Elastic Support Ltd;CN=Elastic Support G2"
-          - CN: "C=US;O=Elastic Support Ltd;CN=Elastic Support Intermediate 2"
-      - CN: "C=US;O=Example Ltd;CN=Example Ltd CA"
+              - DN: "CN=Elastic Support G2;O=Elastic Support Ltd;C=US"
+          - DN: "CN=Elastic Support Intermediate 2;O=Elastic Support Ltd;C=US"
+      - DN: "CN=Example Ltd CA;O=Example Ltd;C=US"
+        truststore: true

@@ -1,16 +1,19 @@
 ---
 # Main task
+- name: "Setup ./.openssl folders"
+  file: path=.openssl state=directory
+
 - name: "Setup ./certs folders"
   file: path=certs state=directory
 
-- name: "generate random password if necessary"
-  copy: content="{{ ansible_date_time.iso8601_micro | to_uuid }}" dest="{{ playbook_dir }}/certs/passwd" force=no
+# - name: "generate random password if necessary"
+#   copy: content="{{ ansible_date_time.iso8601_micro | to_uuid }}" dest="{{ playbook_dir }}/.openssl/passwd" force=no
+#
+# - name: "read password file"
+#   set_fact:
+#     authority_password: "{{ lookup('file', '{{ playbook_dir }}/.openssl/passwd') }}"
 
-- name: "read password file"
-  set_fact:
-    authority_password: "{{ lookup('file', '{{ playbook_dir }}/certs/passwd') }}"
-
-- debug: var=authority_password
+# - debug: var=authority_password
 
 - name: setup CAs
   include: setup_ca.yml

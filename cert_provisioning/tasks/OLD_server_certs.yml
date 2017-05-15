@@ -3,7 +3,7 @@
 - name: Java Keytool | Keystore CA
   command: 'keytool -importcert -noprompt -alias my_ca \
     -keystore {{ item }}.jks -storepass password -keypass password \
-    -file {{ playbook_dir }}/certs/ca/certs/ca.cert.pem'
+    -file {{ playbook_dir }}/certs/ca/certs/ca.crt'
   args:
     chdir: '{{ playbook_dir }}/certs/keytool'
   with_items: "{{ groups['elasticsearch'] }}"
@@ -14,7 +14,7 @@
 - name: Java Keytool | Keystore Intermediate
   command: 'keytool -importcert -noprompt -alias my_intr \
     -keystore {{ item }}.jks  -storepass password -keypass password \
-    -file {{ playbook_dir }}/certs/ca/intermediate/certs/intermediate.cert.pem'
+    -file {{ playbook_dir }}/certs/ca/intermediate/certs/intermediate.crt'
   args:
     chdir: '{{ playbook_dir }}/certs/keytool'
   with_items: "{{ groups['elasticsearch'] }}"
@@ -51,17 +51,17 @@
   command: 'openssl ca -batch -config intermediate/openssl-intr.cnf -extensions v3_req \
     -passin pass:{{ authority_password }} -notext -md sha256 \
     -in intermediate/csr/{{ item }}.csr \
-    -out intermediate/certs/{{ item }}.cert.pem'
+    -out intermediate/certs/{{ item }}.crt'
   args:
     chdir: '{{ playbook_dir }}/certs/ca'
-    creates: '{{ playbook_dir }}/certs/ca/intermediate/certs/{{ item }}.cert.pem'
+    creates: '{{ playbook_dir }}/certs/ca/intermediate/certs/{{ item }}.crt'
   with_items: "{{ groups['elasticsearch'] }}"
   tags: test
 
 - name: Java Keytool | Import Signed Certs
   command: 'keytool -importcert -noprompt -alias {{ item }} \
     -keystore {{ item }}.jks -storepass password -keypass password \
-    -file {{ playbook_dir }}/certs/ca/intermediate/certs/{{ item }}.cert.pem'
+    -file {{ playbook_dir }}/certs/ca/intermediate/certs/{{ item }}.crt'
   args:
     chdir: '{{ playbook_dir }}/certs/keytool'
   with_items: "{{ groups['elasticsearch'] }}"

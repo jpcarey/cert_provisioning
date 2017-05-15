@@ -2,7 +2,7 @@
 # -d = Add this certificate to admin certificate store; default is to store it in the user’s keychain.
 # -r = Specifies the result you want, in this case you want to use trustRoot (see the security man page for the other options.)
 # -k = Specifies the keychain to use
-security -v add-trusted-cert -d -r trustRoot -k "/Users/jared/Library/Keychains/login.keychain-db" "certs/C=US;O=Carey Ltd;CN=Carey Ltd CA/certs/C=US;O=Carey Ltd;CN=Carey Ltd CA.cert.pem"
+security -v add-trusted-cert -d -r trustRoot -k "/Users/jared/Library/Keychains/login.keychain-db" "certs/C=US;O=Carey Ltd;CN=Carey Ltd CA/certs/C=US;O=Carey Ltd;CN=Carey Ltd CA.crt"
 
 # show default keychain
 security -v default-keychain
@@ -11,10 +11,10 @@ security -v default-keychain
 security find-certificate -a -c Carey -Z /Users/jared/Library/Keychains/login.keychain-db
 
 # Print cert details
-openssl x509 -noout -text -in "certs/C=US;O=Carey Ltd;CN=Carey Ltd CA/certs/C=US;O=Carey Ltd;CN=Carey Ltd CA.cert.pem"
+openssl x509 -noout -text -in "certs/C=US;O=Carey Ltd;CN=Carey Ltd CA/certs/C=US;O=Carey Ltd;CN=Carey Ltd CA.crt"
 
 # Verify chain to cert
-openssl verify -CAfile "certs/C=US;O=Carey Ltd;CN=Carey Ltd CA/C=US;O=Carey Ltd;CN=Carey Intermediate 1/C=US;O=Carey Ltd;CN=Carey G2/certs/C=US;O=Carey Ltd;CN=Carey G2-chain.cert.pem" "certs/C=US;O=Carey Ltd;CN=Carey Ltd CA/C=US;O=Carey Ltd;CN=Carey Intermediate 1/C=US;O=Carey Ltd;CN=Carey G2/certs/CN=node2.local.cert.pem"
+openssl verify -CAfile "certs/C=US;O=Carey Ltd;CN=Carey Ltd CA/C=US;O=Carey Ltd;CN=Carey Intermediate 1/C=US;O=Carey Ltd;CN=Carey G2/certs/C=US;O=Carey Ltd;CN=Carey G2-chain.crt" "certs/C=US;O=Carey Ltd;CN=Carey Ltd CA/C=US;O=Carey Ltd;CN=Carey Intermediate 1/C=US;O=Carey Ltd;CN=Carey G2/certs/CN=node2.local.crt"
 
 # java keytool, print keystore cert info (add -v for verbose output)
 keytool -list -keystore certs/keytool/truststore.jks -storepass password

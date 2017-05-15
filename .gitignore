@@ -6,3 +6,6 @@
 
 ### Certs ###
 certs/
+
+### openssl ###
+.openssl/

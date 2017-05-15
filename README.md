@@ -8,7 +8,7 @@ $ cd cert_provisioning
 ```
 Customize `run.yml`:
 The `authorities` dictionary consists of the following:
-- One or more root level authorities, defined by Common Name `CN`
+- One or more root level authorities, defined by Distinguished Name `DN`
 - Each authority can have `children`
 - Each authority can have `servers`
 - Each authority can have `clients`
@@ -21,7 +21,10 @@ $ ansible-playbook run.yml
 
 
 ##### TODO:
-- Test client & server certs
-- Add server & client cert support for root authority
-- Generate multiple formats (currently just PEM): pks12, keystore / truststore, DER
-- Cleanup & Tests integration
+- Test / fix DN for server and client certs
+- Create passwd per authority. Document behavior.
+- Server certs do not have X509v3 Authority Key Identifier
+- Add truststore generation
+- Add server & client cert support for root authority (? maybe)
+- Fix paths to allow for remote path, default to local path. Maybe determine if running as a role?
+- Look into supporting updates. Certs, keystores, etc.

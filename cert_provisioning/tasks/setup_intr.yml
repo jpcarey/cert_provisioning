@@ -10,7 +10,7 @@
     - "{{ intermediate.servers | default([]) }}"
   loop_control:
     loop_var: server
-    label: "server={{server.CN}}"
+    label: "server={{ server.DN }}"
 
 - name: setup Client Certs
   include: _client_certs.yml
@@ -18,7 +18,7 @@
     - "{{ intermediate.clients | default([]) }}"
   loop_control:
     loop_var: client
-    label: "client={{client.CN}}"
+    label: "client={{ client.DN }}"
 
 #############################################
 # TODO:
@@ -26,8 +26,8 @@
 # `loop_control` option for the task to something else to avoid variable collisions and unexpected behavior.
 - name: reset for looping
   set_fact:
-    signer_name: "{{ root_cn }}"
-    authority_chain: "{{ root_cn }}"
+    signer_name: "{{ root_cn_filename }}"
+    authority_chain: "{{ root_cn_filename }}"
   when: intermediate.children is not defined
 
 - name: keep going
