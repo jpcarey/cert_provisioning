@@ -1,7 +1,6 @@
 # cert provisioning
-##### WIP, not fully tested.
 
-ansible 2.2.0
+ansible 2.2.0+
 ```
 $ git clone git@github.com:jpcarey/cert_provisioning.git
 $ cd cert_provisioning
@@ -13,11 +12,11 @@ The `authorities` dictionary consists of the following:
 - Each authority can have `servers`
 - Each authority can have `clients`
 
-If you generate a string in `./certs/passwd`, this will be used for the private keys.  If not, a random value will be generated on first run.
-
 ```
 $ ansible-playbook run.yml
 ```
+
+This will create a `.openssl` and a `certs` folder in the playbook directory. The `.openssl` contains all the configuration and generated files necessary for cert generation and signing. The `certs` has all the good stuff: certs, cert chains, pkcs8, pkcs12, java keystore. The root / intermediate signing authorities private keys are not copied into the `certs` folder. These can be found in the `.openssl` folder (along with the generated password). The server and client private keys are in the `certs` folder, along with a generated password used for encrypting the pkcs12 and java keystore files.
 
 
 ##### TODO:

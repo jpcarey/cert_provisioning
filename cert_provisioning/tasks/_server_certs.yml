@@ -74,6 +74,14 @@
   args:
     creates: '{{ authority_path }}/certs/{{ server_cn_filename }}.jks'
 
+- name: "{{ server_cn }} |Create cert chain file"
+  shell: >
+    cat "{{ authority_path }}/certs/{{ server_cn_filename }}.crt"
+    "{{ authority_path }}/certs/{{ authority_cn_filename }}-chain.crt" >
+    "{{ authority_path }}/certs/{{ server_cn_filename }}-chain.crt"
+  args:
+    creates: '{{ authority_path }}/certs/{{ server_cn_filename }}-chain.crt'
+
 - name: "{{ server_cn }} |Setup output folder"
   file: path={{ playbook_dir }}/certs/{{ authority_chain }}/{{ server_cn_filename }} state=directory
 
@@ -94,6 +102,10 @@
     - {
         s: '{{ authority_path }}/certs/{{ server_cn_filename }}.crt',
         d: '{{ playbook_dir }}/certs/{{ authority_chain }}/{{ server_cn_filename }}/{{ server_cn_filename }}.crt'
+      }
+    - {
+        s: '{{ authority_path }}/certs/{{ server_cn_filename }}-chain.crt',
+        d: '{{ playbook_dir }}/certs/{{ authority_chain }}/{{ server_cn_filename }}/{{ server_cn_filename }}-chain.crt'
       }
     - {
         s: '{{ authority_path }}/certs/{{ server_cn_filename }}.p12',
