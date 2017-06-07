@@ -4,8 +4,10 @@
     - cert_provisioning
 
   # cn: Common Name
-  # dn: Distinguished Name
+  # DN: Distinguished Name
+    # Starts with CN, values separated with ;
   # san: Subject Alternative Names
+    # can use `DNS:` or `IP:`, comma separated
   vars:
     authorities:
       - DN: "CN=Carey Ltd CA;O=Carey Ltd;C=US"
