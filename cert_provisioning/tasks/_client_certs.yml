@@ -2,7 +2,7 @@
 # client cert setup steps
 - name: "{{ client.DN }} |Setup vars"
   set_fact:
-    profile: "{{ 'usr_cert' if client.san|default('') == '' else 'usr_cert_san' }}"
+    profile: "{{ 'client_cert' if client.san|default('') == '' else 'client_cert_san' }}"
     client_cn: "{{ client.DN | regex_replace('^CN=(.*?)(;.*)?$', '\\1') }}"
     client_slash: "{{ client.DN.split(';') | reverse | join('/') }}"
 

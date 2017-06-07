@@ -2,7 +2,7 @@
 # Server cert setup steps
 - name: "{{ server.DN }} |Setup vars"
   set_fact:
-    profile: "{{ 'v3_req' if server.san|default('') == '' else 'v3_req_san' }}"
+    profile: "{{ 'server_cert' if server.san|default('') == '' else 'server_cert_san' }}"
     server_cn: "{{ server.DN | regex_replace('^CN=(.*?)(;.*)?$', '\\1') }}"
     server_slash: "{{ server.DN.split(';') | reverse | join('/') }}"
 

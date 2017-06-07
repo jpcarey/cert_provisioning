@@ -20,8 +20,6 @@ This will create a `.openssl` and a `certs` folder in the playbook directory. Th
 
 
 ##### TODO:
-- Server certs do not have X509v3 Authority Key Identifier
 - Add truststore generation
-- Add server & client cert support for root authority (? maybe)
 - Fix paths to allow for remote path, default to local path. Maybe determine if running as a role?
 - Look into supporting updates. Certs, keystores, etc.
